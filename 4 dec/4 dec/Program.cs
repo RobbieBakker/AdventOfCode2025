@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,11 +14,15 @@ namespace _4_dec
         static void Main(string[] args)
         {
             readFile();
+            var watch = Stopwatch.StartNew(); // Set stopwatch for tracking execution time in ms
 
             //partA();
             //Console.WriteLine("Part A: " + partA() + "\n");
 
             partB();
+
+            watch.Stop(); // Stop stopwatch and print
+            Console.WriteLine("Execution time: " + watch.ElapsedMilliseconds);
 
         }
 
@@ -29,34 +34,32 @@ namespace _4_dec
             {
                 removedThisIteration = partA();
                 removed += removedThisIteration;
-                Console.WriteLine("Removed this iteration: " + removedThisIteration);
+                //Console.WriteLine("Removed this iteration: " + removedThisIteration);
             }
 
             Console.WriteLine("Total removed: " + removed);
         }
 
-        static Boolean checkIfPaper(int i, int j)
+        static int checkIfPaper(int i, int j)
         {
-            int[,] dirs =
+            int adjacent = 0;
+            for (int ni = -1; ni <= 1; ni++) // loops through the Y coordinates
             {
-                {-1, -1}, {-1, 0}, {-1, 1},
-                { 0, -1},          { 0, 1},
-                { 1, -1}, { 1, 0}, { 1, 1}
-            };
-
-            for(int d = 0; d < dirs.GetLength(0); d++)
-            {
-                int ni = i + dirs[d, 0];
-                int nj = j + dirs[d, 1];
-
-                if (ni >= 0 && ni < allLines.Count &&
-                    nj >= 0 && nj < allLines[ni].Count)
+                for (int nj = -1; nj <= 1; nj++) // loops through the X coordinates
                 {
-                    return true;
+                    if (i + ni >= 0 && i + ni < allLines.Count && // checking the validity of the Y coordinate
+                        j + nj >= 0 && j + nj < allLines[i+ni].Count && // checking te validity of the X coordinate
+                        allLines[i + ni][j + nj] == '@') // checking if it contains @
+                    {
+                        if (ni != 0 || nj != 0) // To prevent it from checking the original position.
+                        {
+                            adjacent++;
+                        }
+                    }
                 }
             }
 
-            return false;
+            return adjacent; // return the amount of neighbours containing an @
         }
 
         static int partA()
@@ -68,43 +71,11 @@ namespace _4_dec
                 {
                     if (allLines[i][j].Equals('@')) // if char is @, check positions around it
                     {
-                        int adjacent = 0;
-                        if (i-1 >= 0 && j-1 >= 0 && allLines[i-1][j-1] == '@') // row above
-                        {
-                            adjacent++;
-                        }
-                        if (i - 1 >= 0 && allLines[i - 1][j] == '@')
-                        {
-                            adjacent++;
-                        }
-                        if (i - 1 >= 0 && j + 1 < allLines[i-1].Count && allLines[i - 1][j + 1] == '@')
-                        {
-                            adjacent++;
-                        }
-                        if (j - 1 >= 0 && allLines[i][j - 1] == '@') // same row
-                        {
-                            adjacent++;
-                        }
-                        if (j+1 < allLines[i].Count && allLines[i][j + 1] == '@')
-                        {
-                            adjacent++;
-                        }
-                        if (i + 1 < allLines.Count && j-1 >= 0 && allLines[i + 1][j - 1] == '@') // row below
-                        {
-                            adjacent++;
-                        }
-                        if (i + 1 < allLines.Count && allLines[i + 1][j] == '@')
-                        {
-                            adjacent++;
-                        }
-                        if (i + 1 < allLines.Count && j + 1 < allLines[i + 1].Count && allLines[i + 1][j + 1] == '@')
-                        {
-                            adjacent++;
-                        }
+                        int adjacent = checkIfPaper(i, j); // check the neighbours
 
                         if (adjacent < 4) // if adjacent @ less than 4
                         {
-                            allLines[i][j] = '.';
+                            allLines[i][j] = '.'; // remove the @ (paper roll)
                             reachable++;
                         }
                     }
